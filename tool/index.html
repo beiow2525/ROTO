@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ロト・ミニロト・ロト7 数字分析ツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --surface-1: #fcfcfb;
+    --surface-2: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid-line: #e1e0d9;
+    --axis-line: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #1baf7a;
+    --series-warn: #eda100;
+    --status-good: #0ca30c;
+    --status-critical: #d03b3b;
+    --seq-100:#cde2fb; --seq-150:#b7d3f6; --seq-200:#9ec5f4; --seq-250:#86b6ef;
+    --seq-300:#6da7ec; --seq-350:#5598e7; --seq-400:#3987e5; --seq-450:#2a78d6;
+    --seq-500:#256abf; --seq-550:#1c5cab; --seq-600:#184f95; --seq-650:#104281; --seq-700:#0d366b;
+    --chip-bg: #eef4fc;
+    --chip-key-bg: #2a78d6;
+    --chip-key-fg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1: #1a1a19;
+      --surface-2: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid-line: #2c2c2a;
+      --axis-line: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #199e70;
+      --series-warn: #c98500;
+      --status-good: #0ca30c;
+      --status-critical: #e66767;
+      --seq-100:#0d366b; --seq-150:#104281; --seq-200:#184f95; --seq-250:#1c5cab;
+      --seq-300:#256abf; --seq-350:#2a78d6; --seq-400:#3987e5; --seq-450:#5598e7;
+      --seq-500:#6da7ec; --seq-550:#86b6ef; --seq-600:#9ec5f4; --seq-650:#b7d3f6; --seq-700:#cde2fb;
+      --chip-bg: #22344a;
+      --chip-key-bg: #3987e5;
+      --chip-key-fg: #0b0b0b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface-1: #1a1a19; --surface-2: #0d0d0d; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --text-muted: #898781; --grid-line: #2c2c2a; --axis-line: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-2: #199e70; --series-warn: #c98500;
+    --status-good: #0ca30c; --status-critical: #e66767;
+    --seq-100:#0d366b; --seq-150:#104281; --seq-200:#184f95; --seq-250:#1c5cab;
+    --seq-300:#256abf; --seq-350:#2a78d6; --seq-400:#3987e5; --seq-450:#5598e7;
+    --seq-500:#6da7ec; --seq-550:#86b6ef; --seq-600:#9ec5f4; --seq-650:#b7d3f6; --seq-700:#cde2fb;
+    --chip-bg: #22344a; --chip-key-bg: #3987e5; --chip-key-fg: #0b0b0b;
+  }
+  :root[data-theme="light"] {
+    --surface-1: #fcfcfb; --surface-2: #f9f9f7; --text-primary: #0b0b0b; --text-secondary: #52514e;
+    --text-muted: #898781; --grid-line: #e1e0d9; --axis-line: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --series-2: #1baf7a; --series-warn: #eda100;
+    --status-good: #0ca30c; --status-critical: #d03b3b;
+    --seq-100:#cde2fb; --seq-150:#b7d3f6; --seq-200:#9ec5f4; --seq-250:#86b6ef;
+    --seq-300:#6da7ec; --seq-350:#5598e7; --seq-400:#3987e5; --seq-450:#2a78d6;
+    --seq-500:#256abf; --seq-550:#1c5cab; --seq-600:#184f95; --seq-650:#104281; --seq-700:#0d366b;
+    --chip-bg: #eef4fc; --chip-key-bg: #2a78d6; --chip-key-fg: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--surface-2);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+
+  .disclaimer {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--status-critical);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+  .disclaimer strong { color: var(--text-primary); }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .game-tabs { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .game-tab {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--axis-line);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .game-tab.active { background: var(--series-1); color: #fff; border-color: var(--series-1); }
+  .game-meta { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px; }
+
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--axis-line);
+    background: var(--surface-2);
+    color: var(--text-primary);
+    resize: vertical;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  button {
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--axis-line);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  button.primary { background: var(--series-1); color: #fff; border-color: var(--series-1); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  select, input[type=number] {
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--axis-line);
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+  label.inline { font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+
+  .status-line { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; min-height: 1.2em; }
+  .status-line.error { color: var(--status-critical); }
+  .status-line.ok { color: var(--status-good); }
+
+  .chart-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .chart-scroll svg { display: block; }
+  .bar-tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--text-primary);
+    color: var(--surface-1);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity 0.06s;
+    z-index: 50;
+    white-space: nowrap;
+  }
+
+  .hotcold { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 10px; }
+  .hotcold-col { min-width: 220px; }
+  .hotcold-col h3 { font-size: 0.85rem; margin: 0 0 6px; color: var(--text-secondary); }
+  .num-pill-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .num-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--chip-bg); color: var(--text-primary);
+    font-size: 0.8rem; font-variant-numeric: tabular-nums;
+  }
+
+  .grid-charts { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 760px) { .grid-charts.two-col { grid-template-columns: 1fr 1fr; } }
+
+  .num-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .num-cell {
+    width: 38px; height: 38px; border-radius: 8px;
+    border: 1px solid var(--axis-line);
+    background: var(--surface-2);
+    color: var(--text-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .num-cell.pool { background: var(--chip-bg); border-color: var(--series-1); }
+  .num-cell.key { background: var(--chip-key-bg); color: var(--chip-key-fg); border-color: var(--chip-key-bg); font-weight: 600; }
+
+  .legend { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .candidate-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .candidate-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  }
+  .candidate-nums { display: flex; gap: 6px; flex-wrap: wrap; }
+  .candidate-meta { font-size: 0.78rem; color: var(--text-muted); }
+  .candidate-row button { margin-left: auto; font-size: 0.78rem; padding: 5px 10px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  table th, table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--grid-line); font-variant-numeric: tabular-nums; }
+  table th { color: var(--text-secondary); font-weight: 600; }
+
+  .wheel-output { max-height: 340px; overflow: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; }
+  .footnote { font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="bar-tooltip" id="tooltip"></div>
+<div class="wrap">
+
+  <h1>ロト・ミニロト・ロト7 数字分析ツール</h1>
+  <div class="subtitle">過去データの統計傾向をもとに、数字選択とホイーリング(組み合わせ購入)を支援するツールです。</div>
+
+  <div class="disclaimer">
+    <strong>本ツールは当せん確率を高めるものではありません。</strong>
+    抽せんは毎回独立したランダム事象であり、過去の出現傾向は次回の結果に影響しません。
+    ここで生成される候補番号・組み合わせは、(1) 統計的に出現頻度の高い範囲に選択を寄せる、
+    (2) 他の購入者と数字が被りにくくして当せん時の山分けリスクを下げる、(3) ホイーリングで購入口数を効率化する、
+    という3つの目的のためのものです。当せん確率そのものは選ぶ数字によって変わりません。余剰資金の範囲でお楽しみください。
+  </div>
+
+  <div class="card">
+    <h2>1. 対象ゲームとデータ</h2>
+    <div class="game-tabs" id="gameTabs"></div>
+    <div class="game-meta" id="gameMeta"></div>
+
+    <div class="row" style="margin-top:14px;">
+      <button id="btnSample">サンプルデータを生成してテキストエリアに入れる</button>
+      <button id="btnApply" class="primary">テキストエリアの内容を反映</button>
+      <button id="btnClear">クリア</button>
+    </div>
+    <textarea id="dataInput" placeholder="1行に1回の抽せん本数字を、カンマまたは空白区切りで入力してください。回号・日付・ボーナス数字は含めないでください。&#10;例(ミニロト): 3,11,19,24,30&#10;先頭の行が最も古い抽せん、最終行が最新の抽せんとして扱われます。"></textarea>
+    <div class="status-line" id="dataStatus">データが読み込まれていません。「サンプルデータを生成」から試すか、実際の抽せん結果をCSV形式で貼り付けてください。</div>
+  </div>
+
+  <div class="card">
+    <h2>2. 統計分析</h2>
+    <div id="analysisEmpty" class="status-line">データを反映すると、ここに頻度分析・奇偶バランス・合計値分布・ゾーン分布が表示されます。</div>
+    <div id="analysisBody" style="display:none;">
+
+      <h3 style="font-size:0.9rem;">出現頻度(ホット/コールド)</h3>
+      <div class="chart-scroll"><svg id="freqChart"></svg></div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-swatch" style="background:var(--seq-700)"></span>出現回数 多</div>
+        <div class="legend-item"><span class="legend-swatch" style="background:var(--seq-150)"></span>出現回数 少</div>
+      </div>
+      <div class="hotcold">
+        <div class="hotcold-col">
+          <h3>ホットナンバー(出現回数 上位)</h3>
+          <div class="num-pill-list" id="hotList"></div>
+        </div>
+        <div class="hotcold-col">
+          <h3>コールドナンバー(直近の未出現期間 長)</h3>
+          <div class="num-pill-list" id="coldList"></div>
+        </div>
+      </div>
+
+      <div class="grid-charts two-col" style="margin-top:22px;">
+        <div>
+          <h3 style="font-size:0.9rem;">奇数の個数分布</h3>
+          <div class="chart-scroll"><svg id="oddEvenChart"></svg></div>
+        </div>
+        <div>
+          <h3 style="font-size:0.9rem;">ゾーン別 出現数</h3>
+          <div class="chart-scroll"><svg id="zoneChart"></svg></div>
+        </div>
+      </div>
+
+      <h3 style="font-size:0.9rem; margin-top:22px;">合計値分布</h3>
+      <div class="chart-scroll"><svg id="sumChart"></svg></div>
+      <div class="footnote" id="sumRangeNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. 候補番号を生成</h2>
+    <div class="row">
+      <label class="inline">戦略
+        <select id="strategySelect">
+          <option value="balanced">バランス型(均等ランダム)</option>
+          <option value="hot">ホットナンバー重視</option>
+          <option value="cold">コールドナンバー重視</option>
+        </select>
+      </label>
+      <label class="inline"><input type="checkbox" id="avoidPopular" checked> 人気になりやすい数字・並びを避ける</label>
+      <label class="inline">生成する組数
+        <input type="number" id="candidateCount" value="5" min="1" max="20" style="width:64px;">
+      </label>
+      <button id="btnGenerate" class="primary" disabled>候補を生成</button>
+    </div>
+    <div class="status-line" id="generateStatus"></div>
+    <div class="candidate-list" id="candidateList"></div>
+  </div>
+
+  <div class="card">
+    <h2>4. ホイーリング(組み合わせ購入)</h2>
+    <div class="footnote">
+      番号をクリックすると 未選択 → 候補プール → 固定(キー) → 未選択 の順に切り替わります。
+      固定(キー)にした数字は生成される全ての組み合わせに必ず含まれます。候補プール(キー含む)は最低でも選択数(本数字の個数)以上選んでください。
+    </div>
+    <div class="num-grid" id="wheelGrid"></div>
+    <div class="row">
+      <span class="footnote" id="wheelSummary"></span>
+    </div>
+    <div class="row">
+      <button id="btnWheel" class="primary">組み合わせを生成</button>
+      <button id="btnWheelReset">選択をリセット</button>
+      <button id="btnWheelDownload" disabled>CSVでダウンロード</button>
+    </div>
+    <div class="status-line" id="wheelStatus"></div>
+    <div class="wheel-output" id="wheelOutput" style="display:none;"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GAMES = {
+    miniloto: { key: "miniloto", name: "ミニロト", max: 31, k: 5, price: 200 },
+    loto6:    { key: "loto6",    name: "ロト6",   max: 43, k: 6, price: 200 },
+    loto7:    { key: "loto7",    name: "ロト7",   max: 37, k: 7, price: 300 }
+  };
+  var ZONE_COUNT = 5;
+  var MAX_WHEEL_GENERATE = 1500;
+
+  var state = {
+    currentGame: "miniloto",
+    drawsByGame: { miniloto: [], loto6: [], loto7: [] },
+    wheelState: {},
+    lastWheelCombos: null,
+    lastWheelHeaders: null
+  };
+
+  function isDarkMode(){
+    var t = document.documentElement.getAttribute("data-theme");
+    if (t === "dark") return true;
+    if (t === "light") return false;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function currentGame(){ return GAMES[state.currentGame]; }
+  function currentDraws(){ return state.drawsByGame[state.currentGame]; }
+
+  function computeZones(max, zoneCount){
+    var size = Math.ceil(max / zoneCount);
+    var zones = [];
+    for (var i = 0; i < zoneCount; i++){
+      var start = i * size + 1;
+      if (start > max) break;
+      var end = Math.min(max, (i + 1) * size);
+      zones.push({ start: start, end: end });
+    }
+    return zones;
+  }
+  function zoneIndex(n, zones){
+    for (var i = 0; i < zones.length; i++){
+      if (n >= zones[i].start && n <= zones[i].end) return i;
+    }
+    return -1;
+  }
+
+  function parseDraws(text, max, k){
+    var lines = text.split(/\r?\n/);
+    var draws = [];
+    var skipped = 0;
+    for (var i = 0; i < lines.length; i++){
+      var line = lines[i].trim();
+      if (!line || line.indexOf("#") === 0) continue;
+      var tokens = line.split(/[,\s]+/);
+      var nums = [];
+      for (var j = 0; j < tokens.length; j++){
+        var v = parseInt(tokens[j], 10);
+        if (!isNaN(v) && v >= 1 && v <= max && nums.indexOf(v) === -1) nums.push(v);
+      }
+      if (nums.length < k){ skipped++; continue; }
+      var picked = nums.slice(0, k).sort(function(a,b){ return a-b; });
+      draws.push(picked);
+    }
+    return { draws: draws, skipped: skipped };
+  }
+
+  function generateSampleDraws(max, k, rows){
+    var draws = [];
+    for (var r = 0; r < rows; r++){
+      var pool = [];
+      for (var n = 1; n <= max; n++) pool.push(n);
+      var picked = [];
+      for (var j = 0; j < k; j++){
+        var idx = Math.floor(Math.random() * pool.length);
+        picked.push(pool.splice(idx, 1)[0]);
+      }
+      picked.sort(function(a,b){ return a-b; });
+      draws.push(picked);
+    }
+    return draws;
+  }
+
+  function drawsToText(draws){
+    return draws.map(function(d){ return d.join(","); }).join("\n");
+  }
+
+  function frequencyCounts(draws, max){
+    var counts = new Array(max + 1).fill(0);
+    draws.forEach(function(d){ d.forEach(function(n){ counts[n]++; }); });
+    return counts;
+  }
+
+  function lastSeenGaps(draws, max){
+    var gaps = new Array(max + 1).fill(draws.length);
+    for (var n = 1; n <= max; n++){
+      for (var i = draws.length - 1; i >= 0; i--){
+        if (draws[i].indexOf(n) !== -1){ gaps[n] = draws.length - 1 - i; break; }
+      }
+    }
+    return gaps;
+  }
+
+  function oddEvenDistribution(draws, k){
+    var dist = new Array(k + 1).fill(0);
+    draws.forEach(function(d){
+      var oddCount = d.filter(function(n){ return n % 2 === 1; }).length;
+      dist[oddCount]++;
+    });
+    return dist;
+  }
+
+  function sumsOf(draws){
+    return draws.map(function(d){ return d.reduce(function(a,b){ return a+b; }, 0); });
+  }
+
+  function percentile(sortedArr, p){
+    if (sortedArr.length === 0) return null;
+    var idx = (sortedArr.length - 1) * p;
+    var lo = Math.floor(idx), hi = Math.ceil(idx);
+    if (lo === hi) return sortedArr[lo];
+    return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (idx - lo);
+  }
+
+  function zoneDistribution(draws, max, zones){
+    var counts = zones.map(function(){ return 0; });
+    draws.forEach(function(d){
+      d.forEach(function(n){
+        var idx = zoneIndex(n, zones);
+        if (idx >= 0) counts[idx]++;
+      });
+    });
+    return counts;
+  }
+
+  function seqColor(fraction){
+    var steps = ["--seq-100","--seq-150","--seq-200","--seq-250","--seq-300","--seq-350","--seq-400","--seq-450","--seq-500","--seq-550","--seq-600","--seq-650","--seq-700"];
+    var idx = Math.max(0, Math.min(steps.length - 1, Math.round(fraction * (steps.length - 1))));
+    return "var(" + steps[idx] + ")";
+  }
+
+  function escapeXml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function renderBarChart(svgEl, data, opts){
+    opts = opts || {};
+    var barW = opts.barWidth || 18;
+    var gap = opts.gap || 4;
+    var height = opts.height || 180;
+    var maxValue = opts.maxValue != null ? opts.maxValue : Math.max.apply(null, data.map(function(d){ return d.value; }).concat([1]));
+    var labelEvery = opts.labelEvery || 1;
+    var padLeft = 32, padBottom = 22, padTop = opts.showValueLabels ? 16 : 8;
+    var width = padLeft + data.length * (barW + gap);
+    svgEl.setAttribute("width", width);
+    svgEl.setAttribute("height", height + padBottom + padTop);
+    svgEl.setAttribute("viewBox", "0 0 " + width + " " + (height + padBottom + padTop));
+
+    var parts = [];
+    [0, 0.25, 0.5, 0.75, 1].forEach(function(f){
+      var y = padTop + height * (1 - f);
+      parts.push('<line x1="' + padLeft + '" x2="' + width + '" y1="' + y + '" y2="' + y + '" stroke="var(--grid-line)" stroke-width="1"/>');
+      parts.push('<text x="4" y="' + (y + 3) + '" font-size="9" fill="var(--text-muted)">' + Math.round(maxValue * f) + '</text>');
+    });
+
+    data.forEach(function(d, i){
+      var h = maxValue > 0 ? (d.value / maxValue) * height : 0;
+      var x = padLeft + i * (barW + gap);
+      var y = padTop + height - h;
+      var color = d.color || "var(--series-1)";
+      parts.push('<rect class="bar" data-label="' + escapeXml(d.label) + '" data-value="' + escapeXml(d.value) + '" data-extra="' + escapeXml(d.extra || "") +
+        '" x="' + x + '" y="' + y + '" width="' + barW + '" height="' + Math.max(h, h > 0 ? 2 : 0) + '" rx="3" style="fill:' + color + '; cursor:pointer;"/>');
+      if (opts.showValueLabels){
+        parts.push('<text x="' + (x + barW/2) + '" y="' + (y - 4) + '" font-size="9" fill="var(--text-secondary)" text-anchor="middle">' + escapeXml(d.value) + '</text>');
+      }
+      if (i % labelEvery === 0){
+        parts.push('<text x="' + (x + barW/2) + '" y="' + (padTop + height + 14) + '" font-size="8.5" fill="var(--text-muted)" text-anchor="middle">' + escapeXml(d.label) + '</text>');
+      }
+    });
+    parts.push('<line x1="' + padLeft + '" x2="' + width + '" y1="' + (padTop+height) + '" y2="' + (padTop+height) + '" stroke="var(--axis-line)" stroke-width="1"/>');
+    svgEl.innerHTML = parts.join("");
+  }
+
+  var tooltipEl;
+  function setupTooltip(){
+    tooltipEl = document.getElementById("tooltip");
+    document.addEventListener("mouseover", function(e){
+      var t = e.target;
+      if (t && t.classList && t.classList.contains("bar")){
+        var label = t.getAttribute("data-label");
+        var value = t.getAttribute("data-value");
+        var extra = t.getAttribute("data-extra");
+        tooltipEl.textContent = label + ": " + value + (extra ? " (" + extra + ")" : "");
+        tooltipEl.style.opacity = "1";
+      }
+    });
+    document.addEventListener("mousemove", function(e){
+      if (tooltipEl.style.opacity === "1"){
+        tooltipEl.style.left = (e.clientX + 12) + "px";
+        tooltipEl.style.top = (e.clientY + 12) + "px";
+      }
+    });
+    document.addEventListener("mouseout", function(e){
+      var t = e.target;
+      if (t && t.classList && t.classList.contains("bar")) tooltipEl.style.opacity = "0";
+    });
+  }
+
+  function renderGameTabs(){
+    var container = document.getElementById("gameTabs");
+    container.innerHTML = "";
+    Object.keys(GAMES).forEach(function(key){
+      var g = GAMES[key];
+      var btn = document.createElement("button");
+      btn.className = "game-tab" + (key === state.currentGame ? " active" : "");
+      btn.textContent = g.name;
+      btn.addEventListener("click", function(){
+        state.currentGame = key;
+        state.wheelState = {};
+        onGameSwitch();
+      });
+      container.appendChild(btn);
+    });
+    var g = currentGame();
+    document.getElementById("gameMeta").textContent =
+      "1〜" + g.max + "の数字から" + g.k + "個を選択 / 1口" + g.price + "円";
+  }
+
+  function onGameSwitch(){
+    renderGameTabs();
+    document.getElementById("dataInput").value = "";
+    updateDataStatus();
+    renderAnalysis();
+    renderWheelGrid();
+    document.getElementById("candidateList").innerHTML = "";
+    document.getElementById("generateStatus").textContent = "";
+  }
+
+  function updateDataStatus(){
+    var draws = currentDraws();
+    var el = document.getElementById("dataStatus");
+    if (draws.length === 0){
+      el.textContent = "データが読み込まれていません。「サンプルデータを生成」から試すか、実際の抽せん結果をCSV形式で貼り付けてください。";
+      el.className = "status-line";
+      document.getElementById("btnGenerate").disabled = true;
+    } else {
+      el.textContent = draws.length + "件の抽せんデータが読み込まれています。";
+      el.className = "status-line ok";
+      document.getElementById("btnGenerate").disabled = false;
+    }
+  }
+
+  function renderAnalysis(){
+    var draws = currentDraws();
+    var g = currentGame();
+    if (draws.length === 0){
+      document.getElementById("analysisEmpty").style.display = "block";
+      document.getElementById("analysisBody").style.display = "none";
+      return;
+    }
+    document.getElementById("analysisEmpty").style.display = "none";
+    document.getElementById("analysisBody").style.display = "block";
+
+    var freq = frequencyCounts(draws, g.max);
+    var gaps = lastSeenGaps(draws, g.max);
+    var maxFreq = Math.max.apply(null, freq.slice(1));
+
+    var freqData = [];
+    for (var n = 1; n <= g.max; n++){
+      freqData.push({ label: n, value: freq[n], extra: "未出現" + gaps[n] + "回", color: seqColor(maxFreq > 0 ? freq[n] / maxFreq : 0) });
+    }
+    renderBarChart(document.getElementById("freqChart"), freqData, { barWidth: 14, gap: 3, height: 150, labelEvery: g.max > 35 ? 3 : 2 });
+
+    var withIdx = [];
+    for (n = 1; n <= g.max; n++) withIdx.push({ n: n, freq: freq[n], gap: gaps[n] });
+    var hot = withIdx.slice().sort(function(a,b){ return b.freq - a.freq || a.n - b.n; }).slice(0, 10);
+    var cold = withIdx.slice().sort(function(a,b){ return b.gap - a.gap || a.n - b.n; }).slice(0, 10);
+    document.getElementById("hotList").innerHTML = hot.map(function(x){ return '<span class="num-pill" title="出現' + x.freq + '回">' + x.n + '</span>'; }).join("");
+    document.getElementById("coldList").innerHTML = cold.map(function(x){ return '<span class="num-pill" title="未出現' + x.gap + '回">' + x.n + '</span>'; }).join("");
+
+    var oeDist = oddEvenDistribution(draws, g.k);
+    var oeData = oeDist.map(function(v, i){ return { label: i + "個", value: v, color: "var(--series-1)" }; });
+    renderBarChart(document.getElementById("oddEvenChart"), oeData, { barWidth: 30, gap: 8, height: 130, showValueLabels: true });
+
+    var zones = computeZones(g.max, ZONE_COUNT);
+    var zoneCounts = zoneDistribution(draws, g.max, zones);
+    var zoneData = zoneCounts.map(function(v, i){ return { label: zones[i].start + "-" + zones[i].end, value: v, color: "var(--series-2)" }; });
+    renderBarChart(document.getElementById("zoneChart"), zoneData, { barWidth: 50, gap: 10, height: 130, showValueLabels: true });
+
+    var sums = sumsOf(draws).sort(function(a,b){ return a-b; });
+    var bucketSize = Math.max(1, Math.round((sums[sums.length-1] - sums[0]) / 14) || 1);
+    var minSum = sums[0], maxSum = sums[sums.length-1];
+    var buckets = [];
+    for (var b = minSum; b <= maxSum; b += bucketSize) buckets.push({ start: b, end: b + bucketSize - 1, count: 0 });
+    sums.forEach(function(s){
+      for (var bi = 0; bi < buckets.length; bi++){
+        if (s >= buckets[bi].start && s <= buckets[bi].end){ buckets[bi].count++; break; }
+      }
+    });
+    var sumData = buckets.map(function(bk){ return { label: bk.start, value: bk.count, color: "var(--series-1)" }; });
+    renderBarChart(document.getElementById("sumChart"), sumData, { barWidth: 22, gap: 4, height: 130, labelEvery: 2, showValueLabels: true });
+
+    var p25 = Math.round(percentile(sums, 0.25));
+    var p75 = Math.round(percentile(sums, 0.75));
+    document.getElementById("sumRangeNote").textContent =
+      "合計値の中央50%レンジ: " + p25 + " 〜 " + p75 + "(候補生成時のデフォルト目安として使用)";
+  }
+
+  function buildWeights(strategy, max, freq, gaps){
+    var weights = new Array(max);
+    for (var n = 1; n <= max; n++){
+      var w = 1;
+      if (strategy === "hot") w = freq[n] + 1;
+      else if (strategy === "cold") w = gaps[n] + 1;
+      weights[n-1] = w;
+    }
+    return weights;
+  }
+
+  function weightedSampleWithoutReplacement(candidates, weights, count){
+    var pool = candidates.map(function(c, i){ return { c: c, w: weights[i] }; });
+    var picked = [];
+    for (var i = 0; i < count; i++){
+      var totalW = pool.reduce(function(s, p){ return s + p.w; }, 0);
+      var r = Math.random() * totalW;
+      var idx = 0;
+      for (; idx < pool.length; idx++){
+        r -= pool[idx].w;
+        if (r <= 0) break;
+      }
+      idx = Math.min(idx, pool.length - 1);
+      picked.push(pool[idx].c);
+      pool.splice(idx, 1);
+    }
+    return picked;
+  }
+
+  function isArithmeticSequence(sortedNums){
+    if (sortedNums.length < 3) return false;
+    var diff = sortedNums[1] - sortedNums[0];
+    for (var i = 2; i < sortedNums.length; i++){
+      if (sortedNums[i] - sortedNums[i-1] !== diff) return false;
+    }
+    return true;
+  }
+
+  function passesConstraints(nums, opts){
+    var sum = nums.reduce(function(a,b){ return a+b; }, 0);
+    if (sum < opts.sumRange[0] || sum > opts.sumRange[1]) return false;
+    var oddCount = nums.filter(function(n){ return n % 2 === 1; }).length;
+    if (oddCount < opts.oddRange[0] || oddCount > opts.oddRange[1]) return false;
+    var zoneCounts = opts.zones.map(function(){ return 0; });
+    nums.forEach(function(n){
+      var idx = zoneIndex(n, opts.zones);
+      if (idx >= 0) zoneCounts[idx]++;
+    });
+    var usedZones = zoneCounts.filter(function(c){ return c > 0; }).length;
+    if (usedZones < Math.min(3, opts.zones.length)) return false;
+    var maxInZone = Math.max.apply(null, zoneCounts);
+    if (maxInZone > Math.ceil(opts.k * 0.6)) return false;
+    if (opts.avoidPopular){
+      if (opts.max > 31 && nums.every(function(n){ return n <= 31; })) return false;
+      if (isArithmeticSequence(nums)) return false;
+    }
+    return true;
+  }
+
+  function generateOneCandidate(opts){
+    var candidates = [];
+    for (var n = 1; n <= opts.max; n++) candidates.push(n);
+    for (var attempt = 0; attempt < 500; attempt++){
+      var picked = weightedSampleWithoutReplacement(candidates, opts.weights, opts.k).sort(function(a,b){ return a-b; });
+      if (passesConstraints(picked, opts)) return { nums: picked, relaxed: false };
+    }
+    var fallback = weightedSampleWithoutReplacement(candidates, opts.weights, opts.k).sort(function(a,b){ return a-b; });
+    return { nums: fallback, relaxed: true };
+  }
+
+  function theoreticalSumRange(max, k){
+    var min = k * (k + 1) / 2;
+    var maxSum = k * max - k * (k - 1) / 2;
+    return [Math.round(min + 0.3 * (maxSum - min)), Math.round(min + 0.7 * (maxSum - min))];
+  }
+
+  function modeOddRange(dist, k){
+    var best = 0;
+    for (var i = 1; i < dist.length; i++) if (dist[i] > dist[best]) best = i;
+    return [Math.max(0, best - 1), Math.min(k, best + 1)];
+  }
+
+  function generateCandidates(){
+    var g = currentGame();
+    var draws = currentDraws();
+    if (draws.length === 0) return;
+    var freq = frequencyCounts(draws, g.max);
+    var gaps = lastSeenGaps(draws, g.max);
+    var strategy = document.getElementById("strategySelect").value;
+    var avoidPopular = document.getElementById("avoidPopular").checked;
+    var count = Math.max(1, Math.min(20, parseInt(document.getElementById("candidateCount").value, 10) || 1));
+
+    var sums = sumsOf(draws).sort(function(a,b){ return a-b; });
+    var sumRange = draws.length >= 10 ? [Math.round(percentile(sums,0.2)), Math.round(percentile(sums,0.8))] : theoreticalSumRange(g.max, g.k);
+    var oeDist = oddEvenDistribution(draws, g.k);
+    var oddRange = modeOddRange(oeDist, g.k);
+    var zones = computeZones(g.max, ZONE_COUNT);
+    var weights = buildWeights(strategy, g.max, freq, gaps);
+
+    var opts = { max: g.max, k: g.k, weights: weights, sumRange: sumRange, oddRange: oddRange, zones: zones, avoidPopular: avoidPopular };
+
+    var results = [];
+    var seen = {};
+    var guard = 0;
+    while (results.length < count && guard < count * 60){
+      guard++;
+      var r = generateOneCandidate(opts);
+      var key = r.nums.join(",");
+      if (seen[key]) continue;
+      seen[key] = true;
+      results.push(r);
+    }
+
+    var relaxedCount = results.filter(function(r){ return r.relaxed; }).length;
+    document.getElementById("generateStatus").textContent =
+      results.length + "組を生成しました。" + (relaxedCount > 0 ? "(うち" + relaxedCount + "組は条件を緩和して生成)" : "");
+
+    var listEl = document.getElementById("candidateList");
+    listEl.innerHTML = "";
+    results.forEach(function(r){
+      var sum = r.nums.reduce(function(a,b){ return a+b; }, 0);
+      var oddCount = r.nums.filter(function(n){ return n % 2 === 1; }).length;
+      var row = document.createElement("div");
+      row.className = "candidate-row";
+      row.innerHTML =
+        '<div class="candidate-nums">' + r.nums.map(function(n){ return '<span class="num-pill">' + n + '</span>'; }).join("") + '</div>' +
+        '<div class="candidate-meta">合計' + sum + " / 奇数" + oddCount + "・偶数" + (g.k - oddCount) + '</div>';
+      var copyBtn = document.createElement("button");
+      copyBtn.textContent = "コピー";
+      copyBtn.addEventListener("click", function(){
+        var text = r.nums.join(",");
+        if (navigator.clipboard) navigator.clipboard.writeText(text);
+        copyBtn.textContent = "コピー済み";
+        setTimeout(function(){ copyBtn.textContent = "コピー"; }, 1200);
+      });
+      row.appendChild(copyBtn);
+      listEl.appendChild(row);
+    });
+  }
+
+  function renderWheelGrid(){
+    var g = currentGame();
+    var grid = document.getElementById("wheelGrid");
+    grid.innerHTML = "";
+    for (var n = 1; n <= g.max; n++){
+      (function(num){
+        var cell = document.createElement("div");
+        cell.className = "num-cell";
+        cell.textContent = num;
+        cell.addEventListener("click", function(){
+          var cur = state.wheelState[num] || 0;
+          var next = (cur + 1) % 3;
+          state.wheelState[num] = next;
+          cell.className = "num-cell" + (next === 1 ? " pool" : next === 2 ? " key" : "");
+          updateWheelSummary();
+        });
+        grid.appendChild(cell);
+      })(n);
+    }
+    updateWheelSummary();
+  }
+
+  function updateWheelSummary(){
+    var g = currentGame();
+    var poolCount = 0, keyCount = 0;
+    Object.keys(state.wheelState).forEach(function(n){
+      if (state.wheelState[n] === 1) poolCount++;
+      else if (state.wheelState[n] === 2) keyCount++;
+    });
+    var total = poolCount + keyCount;
+    document.getElementById("wheelSummary").textContent =
+      "プール: " + poolCount + "個 / 固定(キー): " + keyCount + "個 / 合計選択: " + total + "個(本数字" + g.k + "個が必要)";
+  }
+
+  function nCk(n, k){
+    if (k < 0 || k > n) return 0;
+    k = Math.min(k, n - k);
+    var result = 1;
+    for (var i = 0; i < k; i++) result = result * (n - i) / (i + 1);
+    return Math.round(result);
+  }
+
+  function combinations(arr, k, limit){
+    var result = [];
+    var combo = [];
+    var stop = false;
+    function backtrack(start){
+      if (stop) return;
+      if (combo.length === k){
+        result.push(combo.slice());
+        if (result.length >= limit) stop = true;
+        return;
+      }
+      for (var i = start; i < arr.length && !stop; i++){
+        combo.push(arr[i]);
+        backtrack(i + 1);
+        combo.pop();
+      }
+    }
+    backtrack(0);
+    return result;
+  }
+
+  function generateWheel(){
+    var g = currentGame();
+    var pool = [], keys = [];
+    Object.keys(state.wheelState).forEach(function(n){
+      var num = parseInt(n, 10);
+      if (state.wheelState[n] === 1) pool.push(num);
+      else if (state.wheelState[n] === 2) keys.push(num);
+    });
+    var statusEl = document.getElementById("wheelStatus");
+    var outEl = document.getElementById("wheelOutput");
+    var dlBtn = document.getElementById("btnWheelDownload");
+
+    if (keys.length > g.k){
+      statusEl.className = "status-line error";
+      statusEl.textContent = "固定(キー)数字が本数字の個数(" + g.k + "個)を超えています。";
+      outEl.style.display = "none";
+      dlBtn.disabled = true;
+      return;
+    }
+    var needed = g.k - keys.length;
+    if (pool.length < needed){
+      statusEl.className = "status-line error";
+      statusEl.textContent = "候補プールが不足しています。プール(キー含まない)は最低" + needed + "個必要です。";
+      outEl.style.display = "none";
+      dlBtn.disabled = true;
+      return;
+    }
+
+    var total = nCk(pool.length, needed);
+    var combos = combinations(pool, needed, MAX_WHEEL_GENERATE).map(function(c){
+      return keys.concat(c).sort(function(a,b){ return a-b; });
+    });
+
+    state.lastWheelCombos = combos;
+    state.lastWheelHeaders = null;
+
+    statusEl.className = "status-line ok";
+    statusEl.textContent = "全" + total + "通り中" + combos.length + "通りを生成しました。" +
+      (total > combos.length ? "(表示件数の上限に達したため、プールを絞り込むと全件生成できます)" : "");
+
+    var rows = combos.map(function(c, i){
+      return "<tr><td>" + (i+1) + "</td><td>" + c.join(", ") + "</td></tr>";
+    }).join("");
+    outEl.innerHTML = "<table><thead><tr><th>#</th><th>組み合わせ</th></tr></thead><tbody>" + rows + "</tbody></table>";
+    outEl.style.display = "block";
+    dlBtn.disabled = false;
+  }
+
+  function downloadWheelCsv(){
+    if (!state.lastWheelCombos) return;
+    var lines = state.lastWheelCombos.map(function(c){ return c.join(","); });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = currentGame().key + "_wheel.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function setup(){
+    setupTooltip();
+    renderGameTabs();
+    updateDataStatus();
+    renderAnalysis();
+    renderWheelGrid();
+
+    document.getElementById("btnSample").addEventListener("click", function(){
+      var g = currentGame();
+      var draws = generateSampleDraws(g.max, g.k, 120);
+      document.getElementById("dataInput").value =
+        "# " + g.name + " サンプル(ダミー)データ 120件 - 実際の抽せん結果ではありません\n" + drawsToText(draws);
+    });
+
+    document.getElementById("btnApply").addEventListener("click", function(){
+      var g = currentGame();
+      var text = document.getElementById("dataInput").value;
+      var res = parseDraws(text, g.max, g.k);
+      state.drawsByGame[state.currentGame] = res.draws;
+      var el = document.getElementById("dataStatus");
+      if (res.draws.length === 0){
+        el.className = "status-line error";
+        el.textContent = "有効なデータが見つかりませんでした。1行に" + g.k + "個の数字(1〜" + g.max + ")をカンマまたは空白区切りで入力してください。";
+      } else {
+        el.className = "status-line ok";
+        el.textContent = res.draws.length + "件を読み込みました。" + (res.skipped > 0 ? "(" + res.skipped + "行はスキップされました)" : "");
+      }
+      document.getElementById("btnGenerate").disabled = res.draws.length === 0;
+      renderAnalysis();
+    });
+
+    document.getElementById("btnClear").addEventListener("click", function(){
+      document.getElementById("dataInput").value = "";
+      state.drawsByGame[state.currentGame] = [];
+      updateDataStatus();
+      renderAnalysis();
+      document.getElementById("candidateList").innerHTML = "";
+    });
+
+    document.getElementById("btnGenerate").addEventListener("click", generateCandidates);
+    document.getElementById("btnWheel").addEventListener("click", generateWheel);
+    document.getElementById("btnWheelDownload").addEventListener("click", downloadWheelCsv);
+    document.getElementById("btnWheelReset").addEventListener("click", function(){
+      state.wheelState = {};
+      renderWheelGrid();
+      document.getElementById("wheelOutput").style.display = "none";
+      document.getElementById("wheelStatus").textContent = "";
+      document.getElementById("btnWheelDownload").disabled = true;
+    });
+
+    if (window.matchMedia){
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){
+        renderAnalysis();
+      });
+    }
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setup);
+  else setup();
+})();
+</script>
+</body>
+</html>
